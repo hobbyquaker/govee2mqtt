@@ -29,8 +29,18 @@ and **4003** (commands), and — for discovery without configuration — receive
 Only one Govee LAN integration can run per host (homebridge-govee, Home Assistant's
 `govee_light_local` and wez/govee2mqtt all need 4002 too).
 
-Docker: `--network host` (multicast + port 4002), config by `GOVEE2MQTT_*` environment variables,
-`/data` volume for the scene cache.
+### Docker
+
+Multi-arch image (amd64, arm64, armv7):
+
+```
+docker run -d --name govee2mqtt --restart unless-stopped --network host -v govee2mqtt:/data \
+  -e GOVEE2MQTT_MQTT_URL=mqtt://broker \
+  ghcr.io/hobbyquaker/govee2mqtt
+```
+
+`--network host` is needed for multicast and for port 4002; config comes from `GOVEE2MQTT_*`
+environment variables; the `/data` volume holds the scene cache.
 
 ### Discovery on networks without multicast
 

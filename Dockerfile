@@ -16,6 +16,7 @@ ENV NODE_ENV=production \
 
 # the LAN API needs multicast and UDP port 4002 on the host: run with --network host;
 # the scene cache lives in /data (mount a volume)
+RUN mkdir /data && chown node:node /data
 VOLUME /data
 USER node
 
