@@ -1,0 +1,8 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "govee2mqtt device names",
+  "description": "Govee device id (from the LAN scan reply, colon separated hex) → topic name",
+  "type": "object",
+  "propertyNames": {"pattern": "^([0-9A-Fa-f]{2}:){7}[0-9A-Fa-f]{2}$"},
+  "additionalProperties": {"type": "string", "pattern": "^[a-z0-9][a-z0-9_-]*$"}
+}
