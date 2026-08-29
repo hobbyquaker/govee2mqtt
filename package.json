@@ -1,6 +1,6 @@
 {
   "name": "govee2mqtt",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Interface between Govee WiFi lights (LAN API) and MQTT",
   "type": "module",
   "main": "index.js",
@@ -57,7 +57,7 @@
     "serviceExtra": []
   },
   "dependencies": {
-    "mqtt-interfaces-core": "^0.8.0"
+    "mqtt-interfaces-core": "^0.10.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.0.0",

@@ -7,7 +7,7 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
-import {createAdapter} from 'mqtt-interfaces-core';
+import {createAdapter, createLogger, runDiscovery, autoAddresses} from 'mqtt-interfaces-core';
 import config from './config.js';
 import pkg from './package.json' with {type: 'json'};
 import {handle as handleInstall} from './lib/install.js';
@@ -18,6 +18,30 @@ import {SceneLibrary} from './lib/scenes.js';
 import {sceneRule, musicModes, colorTempRange} from './lib/sku.js';
 import * as packet from './lib/packet.js';
 import {discoveryModel} from './lib/hadiscovery.js';
+import {discoveryHint} from './lib/discovery.js';
+
+/*
+ * Finding the lights (core B-2): --discover prints every device that answers the LAN scan,
+ * `--address auto` puts all of them in the unicast scan list. That list is a fallback, not the
+ * normal path — the running bridge finds devices by multicast on its own — so `auto` is for
+ * networks where multicast does not work, and for `--install -a auto`, which persists what was
+ * found instead of leaving every service start to depend on a scan. Before handleInstall() for
+ * that reason. The adapter does not exist yet, so discovery gets its own logger.
+ */
+if (config.discover || (config.address.length === 1 && String(config.address[0]) === 'auto')) {
+    const discoveryLog = createLogger({envPrefix: config.$envPrefix || 'GOVEE2MQTT', level: config.verbosity});
+    const hint = discoveryHint();
+    if (config.discover) {
+        await runDiscovery({hint, config, log: discoveryLog}); // prints and exits
+    }
+    try {
+        config.address = await autoAddresses(hint, {config, log: discoveryLog});
+    } catch (err) {
+        // nothing answered: starting anyway would bridge an empty LAN and look like a broken adapter
+        discoveryLog.error('--address auto:', err.message);
+        process.exit(1);
+    }
+}
 
 handleInstall(config);
 

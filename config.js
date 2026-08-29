@@ -1,12 +1,17 @@
 import {parseConfig} from 'mqtt-interfaces-core';
 import pkg from './package.json' with {type: 'json'};
+import {discoveryHint} from './lib/discovery.js';
 
 export const OPTIONS = {
     address: {
         alias: 'a',
         type: 'array',
-        describe: 'ip of a device to scan by unicast (repeatable; multicast discovery needs no addresses)',
+        describe:
+            'ip of a device to scan by unicast (repeatable; multicast discovery needs no addresses), ' +
+            'or "auto" to fill the list with every device found (see --discover)',
         default: [],
+        // a bridge, so the scan fills the whole list rather than one address (core autoAddresses)
+        discover: true,
     },
     broadcast: {
         type: 'boolean',
@@ -49,9 +54,11 @@ export default parseConfig({
     pkg,
     options: OPTIONS,
     defaults: {name: 'govee'},
+    discovery: discoveryHint(),
     examples: [
         ['$0 -u mqtt://broker', 'run in the foreground, discover by multicast'],
         ['$0 -u mqtt://broker -a 192.168.1.50 --broadcast', 'help discovery on networks without multicast'],
-        ['sudo $0 --install -n govee -u mqtt://broker', 'install as service govee2mqtt@govee'],
+        ['$0 --discover', 'list the govee devices on this network and exit'],
+        ['sudo $0 --install -n govee -u mqtt://broker -a auto', 'install as govee2mqtt@govee, pinning what is found'],
     ],
 });

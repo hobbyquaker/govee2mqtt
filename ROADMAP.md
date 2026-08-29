@@ -21,9 +21,10 @@ gain. BLE-only Govee devices are out of scope.
 
 Fleet-wide decisions D-1 … D-13 live in the mqtt-interfaces master roadmap; the core's are C-n,
 wiim2mqtt's W-n, homeconnect2mqtt's H-n. This file uses **G-n** for govee2mqtt decisions and
-**OQ-Gn** for its open questions. Status 2026-08-28 (evening): 0.1.0 code complete — LAN bridge,
-scenes from the library, HA discovery, 42 unit tests, MQTT round trip verified live on the H606A
-(RESEARCH.md §1); scene activation still awaits a visual check (§6); not yet published.
+**OQ-Gn** for its open questions. Status 2026-08-29: 0.2.0 published — LAN bridge, scenes from
+the library, HA discovery, core device discovery (`--discover`, `-a auto`), 52 unit tests, MQTT
+round trip and discovery both verified live on the H606A (RESEARCH.md §1); scene activation still
+awaits a visual check (§6).
 
 Contents: 1 prior art · 2 Govee facts · 3 what users struggle with elsewhere · 4 implementation
 spec · 5 decisions · 6 milestones · 7 housekeeping · 8 open questions · 9 sources.
@@ -474,9 +475,15 @@ same mock drives an `e2e.sh` with a throwaway mosquitto.
    snapshot scenes, `--ha-entities curated|full`, HA `effect_list` merging (OQ-G7), a
    `scripts/capture-diff.mjs` that diffs a BLE/Wireshark capture against the library recipe for
    new SKUs (the 2024 method, documented in RESEARCH.md).
-6. **Later / maybe**: DIY scenes over the LAN (OQ-G9); the core's device-discovery module (B-2)
-   taking over §4.6's scan mechanics once it exists; AWS-IoT push (OQ-G8) only if polling proves
-   insufficient for someone's use case.
+6. ~~Core discovery (B-2)~~ — done in 0.2.0: `--discover` and `-a auto` on core 0.10.0
+   (`lib/discovery.js`), verified against the H606A at 172.16.23.120. It answers OQ-G12 in the
+   smaller of the two possible ways: the core scans to _find_ devices before an instance exists,
+   `lib/lan.js` keeps the scan the running bridge uses, and the two share only the protocol
+   constants. Moving the runtime scan into the core as well would mean teaching it about
+   membership, per-device pacing and the reply socket the bridge holds for commands anyway —
+   no gain.
+7. **Later / maybe**: DIY scenes over the LAN (OQ-G9); AWS-IoT push (OQ-G8) only if polling
+   proves insufficient for someone's use case.
 
 ---
 
@@ -542,8 +549,12 @@ same mock drives an `e2e.sh` with a throwaway mosquitto.
 - **OQ-G11** Colour temperature range per SKU: LAN accepts any K; the H606A's real range
   (2000–9000?) should come from the Platform API's `colorTemperatureK` range when a key is
   present, else a per-SKU default in `lib/sku.js`.
-- **OQ-G12** Core: the multicast/broadcast/unicast scan mechanics belong in the core's planned
-  device-discovery module (B-2); write `lib/lan.js` so the scan part can move.
+- ~~**OQ-G12**~~ Core: the scan mechanics and the core's device-discovery module (B-2).
+  Answered in 0.2.0 (§6.6): the core does the _finding_ — `--discover`, `-a auto`, and the
+  `x-discover` marker she needs — and `lib/lan.js` keeps the runtime scan, because that one runs
+  on the socket the bridge already holds on 4002 for commands and status. Cost on the core side:
+  `bindPort`, since Govee answers to a fixed port and ignores the source port, and
+  `autoAddresses`, since a bridge fills a list and not one address.
 
 ---
 

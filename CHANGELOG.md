@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.2.0
+
+### Added
+
+- **`--discover`** — list every Govee device on the network and exit (`--discover-json` for JSON),
+  and **`-a auto`**, which fills the unicast scan list with all of them. Built on the core's
+  discovery module (B-2), so `--discover-address` (a device or a `10.0.1.0/24` range a router
+  away), `--discover-timeout` and `--discover-ip` come with it. `--install -a auto` resolves the
+  scan once and writes the result into the instance's env file, instead of leaving every service
+  start to depend on a scan.
+- The `address` option is marked `x-discover` in `--config-schema`, which is how a management UI
+  (she) knows to offer the scan when an instance is added — it showed nothing before. It is an
+  array, so the scan fills the whole list rather than one address: this is a bridge, one instance
+  for the whole LAN.
+
+### Notes
+
+- Needs mqtt-interfaces-core ≥ 0.10.0, whose `bindPort` this required: a Govee device answers to
+  port 4002 and ignores the port the scan came from, so the core's probe on an ephemeral port
+  heard nothing at all.
+- Discovery is for the unicast fallback only. Where multicast works the bridge finds its devices
+  by itself and needs no addresses, which is unchanged.
+
 ## 0.1.1
 
 ### Added

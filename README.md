@@ -49,6 +49,30 @@ WiFi routers and VLAN boundaries often drop multicast. Then either give the devi
 `govee/status/bridge/scan` shows what the last scan used and found. The devices must have a
 route back to this host's port 4002.
 
+To find out what those addresses are, ask:
+
+```
+govee2mqtt --discover                     # list every device that answers, then exit
+govee2mqtt --discover --discover-json     # the same as JSON
+```
+
+`--discover` sends the same scan the running bridge sends and prints what answers — address,
+model and device id. It is also what a management UI (she) offers when you add an instance.
+
+`-a auto` fills the list with every device found, which is the useful form at install time:
+
+```
+sudo govee2mqtt --install -n govee -u mqtt://broker -a auto
+```
+
+That resolves the scan **once** and writes the result into the instance's env file, so the
+service does not depend on a scan succeeding on every start. `--discover-address 10.0.1.0/24`
+reaches a subnet a router away, and `--discover-ip` writes addresses rather than dns names.
+Plain `-a auto` at run time resolves on every start and exits if nothing answers.
+
+Note this is only for the unicast fallback: where multicast works the bridge finds devices by
+itself and needs no addresses at all.
+
 ## Options
 
 | option                      | env                        | default            | description                                                          |
@@ -56,7 +80,7 @@ route back to this host's port 4002.
 | `-u, --mqtt-url`            | `MQTT_URL`                 | `mqtt://localhost` | broker url (`mqtt://`, `mqtts://`, `ws://`)                          |
 | `--mqtt-username/-password` | `MQTT_USERNAME/_PASSWORD`  |                    | broker credentials                                                   |
 | `-n, --name`                | `GOVEE2MQTT_NAME`          | `govee`            | instance name = topic prefix                                         |
-| `-a, --address`             | `GOVEE2MQTT_ADDRESS`       |                    | device ip to scan by unicast (repeatable)                            |
+| `-a, --address`             | `GOVEE2MQTT_ADDRESS`       |                    | device ip to scan by unicast (repeatable), or `auto` (see below)     |
 | `--broadcast`               | `GOVEE2MQTT_BROADCAST`     | `false`            | also scan by subnet broadcast                                        |
 | `--lan-interface`           | `GOVEE2MQTT_LAN_INTERFACE` |                    | ipv4 address of the interface for the multicast group                |
 | `--scan-interval`           | `GOVEE2MQTT_SCAN_INTERVAL` | `60`               | seconds between discovery scans (0 = only at start)                  |
